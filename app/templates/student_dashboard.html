@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f3f4f6; }
+    .navbar { background: #2563eb; color: white; padding: 1rem; display: flex; justify-content: space-between; }
+    .navbar button { margin-left: 1rem; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; background: #1e40af; color: white; }
+    .navbar button:hover { background: #1d4ed8; }
+    .container { display: flex; height: calc(100vh - 60px); }
+    .card { flex: 1; margin: 1rem; padding: 2rem; background: white; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    iframe { width: 100%; height: 80%; border: none; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div>🎓 Student Dashboard</div>
+    <div>
+      <button onclick="alert('Contacting Professor...')">Contact Professor</button>
+      <button onclick="alert('Comment feature coming soon')">Comments</button>
+      <button onclick="alert('Logged out')">Logout</button>
+    </div>
+  </div>
+
+  <!-- Two cards layout -->
+  <div class="container">
+    <!-- Left: Congrats -->
+    <div class="card">
+      <h2>🎉 Congratulations!</h2>
+      <p>You have successfully completed the course.</p>
+      <p>Check your graded exam paper on the right.</p>
+    </div>
+
+    <!-- Right: Graded Exam -->
+    <div class="card" id="exam-area">
+      <h2>📄 Your Graded Exam</h2>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <script>
+    const studentName = "{{ student_name }}";  // Passed from FastAPI route
+
+    fetch(`/graded/${studentName}`)
+      .then(res => {
+        if (!res.ok) throw new Error("No graded exam found");
+        return res.blob();
+      })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        document.getElementById("exam-area").innerHTML = `
+          <iframe src="${url}"></iframe>
+          <p><a href="${url}" download="${studentName}_graded.pdf">⬇ Download Graded PDF</a></p>
+        `;
+      })
+      .catch(err => {
+        document.getElementById("exam-area").innerHTML = `
+          <p>❌ No graded exam available yet. Please check back later.</p>
+        `;
+      });
+  </script>
+</body>
+</html>

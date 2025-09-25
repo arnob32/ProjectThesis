@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landing Page with Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #f3f6fb;
+      line-height: 1.6;
+      scroll-behavior: smooth;
+    }
+
+    /* ===== Navbar ===== */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      z-index: 1000;
+    }
+
+    nav .container-nav {
+      max-width: 1100px;
+      margin: auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    nav .logo {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #2a73ff;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 1.5rem;
+    }
+
+    nav ul li a {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    nav ul li a:hover {
+      color: #2a73ff;
+    }
+
+    /* ===== Section Container (Login/Signup) ===== */
+    .container {
+      display: flex;
+      width: 100%;
+      max-width: 1100px;
+      margin: 6rem auto 3rem; /* push down below navbar */
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      min-height: 500px;
+    }
+
+    /* Left panel */
+    .left {
+      flex: 1;
+      background: #2a73ff;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .left h2 {
+      font-size: 1.5rem;
+      margin-top: 1rem;
+      z-index: 2;
+    }
+
+    .left p {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      z-index: 2;
+    }
+
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: float 6s infinite ease-in-out alternate;
+    }
+    .shape1 { width: 40px; height: 40px; background: #ff6f61; top: 20%; left: 15%; animation-delay: 0s; }
+    .shape2 { width: 25px; height: 25px; background: #ffd93b; top: 60%; left: 30%; animation-delay: 1s; }
+    .shape3 { width: 30px; height: 30px; background: #00c9a7; top: 35%; right: 20%; animation-delay: 2s; }
+    .shape4 { width: 20px; height: 20px; background: #ff9ff3; bottom: 15%; right: 25%; animation-delay: 3s; }
+    .shape5 { width: 35px; height: 35px; background: #ffaf40; bottom: 25%; left: 10%; animation-delay: 4s; }
+
+    @keyframes float {
+      0%   { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-20px) rotate(360deg); }
+    }
+
+    /* Right panel */
+    .right {
+      flex: 1;
+      background: #fff;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .logo-panel {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #2a73ff;
+    }
+
+    .tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .tabs button {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      background: none;
+      font-size: 1rem;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: 0.3s;
+    }
+
+    .tabs button.active {
+      color: #2a73ff;
+      font-weight: bold;
+      border-bottom: 3px solid #2a73ff;
+    }
+
+    .form {
+      display: none;
+      animation: fade 0.6s ease;
+    }
+
+    .form.active {
+      display: block;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 0.9rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: #2a73ff;
+    }
+
+    .options {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .options a {
+      color: #2a73ff;
+      text-decoration: none;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.9rem;
+      background: #2a73ff;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background: #1d54b8;
+    }
+
+    .google-btn {
+      width: 100%;
+      padding: 0.9rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .google-btn:hover {
+      background: #f3f3f3;
+    }
+
+    /* ===== Services Section ===== */
+    .section {
+      max-width: 1100px;
+      margin: 4rem auto;
+      padding: 0 1rem;
+    }
+
+    .section h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #333;
+    }
+
+    .services {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .service {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: 0.3s;
+    }
+
+    .service:hover {
+      transform: translateY(-5px);
+    }
+
+    /* ===== FAQ Section ===== */
+    .faq {
+      max-width: 800px;
+      margin: 4rem auto;
+      padding: 0 1rem;
+    }
+
+    .faq-item {
+      background: #fff;
+      margin-bottom: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .faq-question {
+      padding: 1rem;
+      cursor: pointer;
+      font-weight: bold;
+      background: #f7f9fc;
+    }
+
+    .faq-answer {
+      padding: 1rem;
+      display: none;
+    }
+
+    .faq-item.active .faq-answer {
+      display: block;
+    }
+
+    /* ===== Contact Section ===== */
+    .contact {
+      max-width: 600px;
+      margin: 4rem auto;
+      background: #fff;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      nav ul {
+        display: none;
+      }
+      .container {
+        flex-direction: column;
+        margin-top: 5rem;
+      }
+      .left {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav>
+    <div class="container-nav">
+      <div class="logo">🌐 Company</div>
+      <ul>
+        <li><a href="#login-section">Login</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Login/Signup Section -->
+  <div id="login-section" class="container">
+    <div class="left">
+      <div class="shape shape1"></div>
+      <div class="shape shape2"></div>
+      <div class="shape shape3"></div>
+      <div class="shape shape4"></div>
+      <div class="shape shape5"></div>
+      <h2>New Scheduling And Routing Options</h2>
+      <p>We also updated the format of posts with ads and rewards.</p>
+    </div>
+
+    <div class="right">
+      <div class="logo-panel">📘</div>
+      <div class="tabs">
+        <button class="tab-btn active" data-target="login">Login</button>
+        <button class="tab-btn" data-target="signup">Sign Up</button>
+      </div>
+
+      <!-- Login Form -->
+      <form class="form active" id="login">
+        <div class="form-group">
+          <input type="email" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" placeholder="Password">
+        </div>
+        <div class="options">
+          <label><input type="checkbox"> Remember Me</label>
+          <a href="#">Forgot Password?</a>
+        </div>
+        <button type="submit" class="btn">Login</button>
+        <button type="button" class="google-btn">Sign in with Google</button>
+      </form>
+
+      <!-- Signup Form -->
+      <form class="form" id="signup">
+        <div class="form-group">
+          <input type="text" placeholder="Full Name">
+        </div>
+        <div class="form-group">
+          <input type="email" placeholder="Email">
+        </div>
+        <div class="form-group">
+          <input type="password" placeholder="Password">
+        </div>
+        <div class="form-group">
+          <input type="password" placeholder="Confirm Password">
+        </div>
+        <button type="submit" class="btn">Sign Up</button>
+        <button type="button" class="google-btn">Sign up with Google</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Services Section -->
+  <div id="services" class="section">
+    <h2>Our Services</h2>
+    <div class="services">
+      <div class="service">🚀 Fast Scheduling</div>
+      <div class="service">🔒 Secure Accounts</div>
+      <div class="service">📊 Data Analytics</div>
+      <div class="service">🤝 24/7 Support</div>
+    </div>
+  </div>
+
+  <!-- FAQ Section -->
+  <div id="faq" class="faq">
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq-item">
+      <div class="faq-question">What is this service about?</div>
+      <div class="faq-answer">This platform helps you manage schedules, routing, and secure account access.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">Is my data safe?</div>
+      <div class="faq-answer">Yes, all data is encrypted and securely stored.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-question">How can I reset my password?</div>
+      <div class="faq-answer">Click "Forgot Password?" in the login form and follow the steps.</div>
+    </div>
+  </div>
+
+  <!-- Contact Section -->
+  <div id="contact" class="contact">
+    <h2>Contact Us</h2>
+    <form>
+      <div class="form-group">
+        <input type="text" placeholder="Your Name">
+      </div>
+      <div class="form-group">
+        <input type="email" placeholder="Your Email">
+      </div>
+      <div class="form-group">
+        <textarea rows="4" placeholder="Your Message"></textarea>
+      </div>
+      <button class="btn">Send Message</button>
+    </form>
+  </div>
+
+  <script>
+    // Tabs (Login/Signup)
+    const tabs = document.querySelectorAll(".tab-btn");
+    const forms = document.querySelectorAll(".form");
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        forms.forEach(f => f.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.target).classList.add("active");
+      });
+    });
+
+    // FAQ accordion
+    const faqItems = document.querySelectorAll(".faq-item");
+    faqItems.forEach(item => {
+      item.querySelector(".faq-question").addEventListener("click", () => {
+        item.classList.toggle("active");
+      });
+    });
+  </script>
+</body>
+</html>

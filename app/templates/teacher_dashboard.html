@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; display: flex; height: 100vh; }
+    .sidebar { width: 260px; background: #1f2937; color: white; padding: 1rem; display: flex; flex-direction: column; }
+    .sidebar h2 { margin-bottom: 1rem; }
+    .sidebar label { font-size: 0.9rem; margin-top: 1rem; display: block; }
+    .sidebar select { width: 100%; padding: 0.5rem; margin-top: 0.3rem; border-radius: 6px; border: none; }
+    .sidebar ul { list-style: none; padding: 0; margin-top: 1rem; }
+    .sidebar li { padding: 0.8rem; margin: 0.3rem 0; background: #374151; border-radius: 6px; cursor: pointer; }
+    .sidebar li:hover { background: #4b5563; }
+    .main { flex: 1; display: flex; flex-direction: column; }
+    .navbar { background: #2563eb; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .nav-buttons button { margin-left: 1rem; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; background: #1e40af; color: white; }
+    .nav-buttons button:hover { background: #1d4ed8; }
+    .content { flex: 1; padding: 2rem; background: #f3f4f6; overflow-y: auto; }
+    .question-box { margin-bottom: 1rem; padding: 1rem; background: #e5e7eb; border-radius: 6px; }
+    label { display: block; margin-top: 0.5rem; }
+    canvas { border: 1px solid #000; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Dashboard</h2>
+
+    <!-- Department Filter -->
+    <label for="department">Department</label>
+    <select id="department">
+      <option value="">-- Select Department --</option>
+      <option value="cs">Computer Science</option>
+      <option value="math">Mathematics</option>
+      <option value="phy">Physics</option>
+    </select>
+
+    <!-- Semester Filter -->
+    <label for="semester">Semester</label>
+    <select id="semester">
+      <option value="">-- Select Semester --</option>
+      <option value="summer">Summer</option>
+      <option value="winter">Winter</option>
+    </select>
+
+    <!-- Navigation -->
+    <ul>
+      <li onclick="showStudents()">Students</li>
+      <li onclick="showExamForm()">Create Exam</li>
+    </ul>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="navbar">
+      <div>📚 Teacher Dashboard</div>
+      <div class="nav-buttons">
+        <button>Settings</button>
+        <button>Logout</button>
+      </div>
+    </div>
+
+    <div class="content" id="content-area">
+      <h2>Welcome, Teacher!</h2>
+      <p>Select a menu item to get started.</p>
+    </div>
+  </div>
+
+  <script>
+    // Example student data
+    const studentsData = {
+      cs: {
+        summer: ["Alice", "Bob"],
+        winter: ["Charlie", "David"]
+      },
+      math: {
+        summer: ["Eve", "Frank"],
+        winter: ["Grace", "Henry"]
+      },
+      phy: {
+        summer: ["Ivy", "Jack"],
+        winter: ["Karen", "Leo"]
+      }
+    };
+
+    function getSelectedDeptAndSem() {
+      const dept = document.getElementById("department").value;
+      const sem = document.getElementById("semester").value;
+      return { dept, sem };
+    }
+
+    function showStudents() {
+      const { dept, sem } = getSelectedDeptAndSem();
+      if (!dept || !sem) {
+        document.getElementById("content-area").innerHTML =
+          "<h2>Please select both Department and Semester first.</h2>";
+        return;
+      }
+
+      const list = studentsData[dept]?.[sem] || [];
+      if (list.length === 0) {
+        document.getElementById("content-area").innerHTML =
+          `<h2>No students found in ${dept.toUpperCase()} - ${sem} Semester</h2>`;
+        return;
+      }
+
+      let html = `
+        <h2>Students in ${dept.toUpperCase()} - ${sem} Semester</h2>
+        <label for="student">Select Student:</label>
+        <select id="student" onchange="openPaper(this.value)">
+          <option value="">-- Select Student --</option>`;
+      list.forEach(student => {
+        html += `<option value="${student}">${student}</option>`;
+      });
+      html += `</select>
+        <div id="student-content"></div>`;
+      document.getElementById("content-area").innerHTML = html;
+    }
+
+    function openPaper(student) {
+      if (!student) return;
+      document.getElementById("student-content").innerHTML = `
+        <h3>${student}'s Exam Paper</h3>
+
+        <!-- PDF Canvas -->
+        <canvas id="pdf-canvas" width="800" height="1000"></canvas>
+        <br>
+        <button onclick="saveAnnotations('${student}')">💾 Save Annotations</button>
+        <button onclick="clearAnnotations()">🧹 Clear</button>
+
+        <hr>
+        <h3>Marks Entry</h3>
+        <form id="marksForm" onsubmit="submitMarks(event, '${student}')">
+          <label>Q1:</label> <input type="number" name="Q1" required> /10<br>
+          <label>Q2:</label> <input type="number" name="Q2" required> /20<br>
+          <label>Q3:</label> <input type="number" name="Q3" required> /30<br>
+          <button type="submit">✅ Save Marks</button>
+        </form>
+        <div id="marks-result"></div>
+      `;
+
+      // Load PDF into canvas
+      const url = "/static/uploads/" + student + ".pdf";
+      pdfjsLib.getDocument(url).promise.then(pdf => {
+        pdf.getPage(1).then(page => {
+          const scale = 1.2;
+          const viewport = page.getViewport({ scale: scale });
+          const canvas = document.getElementById("pdf-canvas");
+          const context = canvas.getContext("2d");
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          const renderContext = { canvasContext: context, viewport: viewport };
+          page.render(renderContext);
+        });
+      });
+
+      // Drawing
+      const canvas = document.getElementById("pdf-canvas");
+      const ctx = canvas.getContext("2d");
+      let drawing = false;
+
+      canvas.onmousedown = e => { drawing = true; ctx.moveTo(e.offsetX, e.offsetY); };
+      canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
+      canvas.onmousemove = e => {
+        if (!drawing) return;
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "red";
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      };
+    }
+
+    function saveAnnotations(student) {
+      const canvas = document.getElementById("pdf-canvas");
+      const dataURL = canvas.toDataURL("image/png");
+
+      fetch("/save-annotations/" + student, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ image: dataURL })
+      }).then(res => res.json())
+        .then(data => alert("Annotations saved!"));
+    }
+
+    function clearAnnotations() {
+      const canvas = document.getElementById("pdf-canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function submitMarks(event, student) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const marks = {};
+    formData.forEach((value, key) => { marks[key] = value; });
+
+    fetch("/save-marks/" + student, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(marks)
+    })
+    .then(res => res.json())
+    .then(data => {
+      let gradedLink = "";
+      if (data.graded_pdf) {
+        gradedLink = `<p>📄 <a href="${data.graded_pdf}" target="_blank">Download Graded PDF</a></p>`;
+      }
+      document.getElementById("marks-result").innerHTML = `
+        <p>✅ Marks saved: ${JSON.stringify(data.marks)}</p>
+        ${gradedLink}
+      `;
+    });
+  }
+
+    function showExamForm() {
+      const { dept, sem } = getSelectedDeptAndSem();
+      if (!dept || !sem) {
+        document.getElementById("content-area").innerHTML =
+          "<h2>Please select both Department and Semester before creating an exam.</h2>";
+        return;
+      }
+
+      document.getElementById("content-area").innerHTML = `
+        <h2>Create Exam Paper (${dept.toUpperCase()} - ${sem} Semester)</h2>
+        <form id="examForm" method="post" action="/generate-exam">
+          <input type="hidden" name="department" value="${dept}">
+          <input type="hidden" name="semester" value="${sem}">
+
+          <label>Exam Title:</label>
+          <input type="text" name="title" required><br><br>
+
+          <label>Course Code:</label>
+          <input type="text" name="code" required><br><br>
+
+          <h3>Questions</h3>
+          <div id="questions-area"></div>
+          <button type="button" onclick="addQuestion()">➕ Add Question</button>
+          <br><br>
+
+          <input type="hidden" name="questions" id="questions-json">
+          <button type="submit">Generate Exam</button>
+        </form>
+      `;
+
+      document.getElementById("examForm").onsubmit = function(event) {
+        const questions = [];
+        document.querySelectorAll(".question-box").forEach(box => {
+          const text = box.querySelector("textarea").value;
+          const size = box.querySelector("select").value;
+          if (text.trim()) {
+            questions.push({ text, size });
+          }
+        });
+        document.getElementById("questions-json").value = JSON.stringify(questions);
+      };
+    }
+
+    function addQuestion() {
+      const qArea = document.getElementById("questions-area");
+      const div = document.createElement("div");
+      div.className = "question-box";
+      div.innerHTML = `
+        <label>Question:</label>
+        <textarea rows="2" cols="50" required></textarea>
+        <label>Answer Box Size:</label>
+        <select>
+          <option value="small">Small</option>
+          <option value="medium" selected>Medium</option>
+          <option value="large">Large</option>
+        </select>
+      `;
+      qArea.appendChild(div);
+    }
+  </script>
+</body>
+</html>
